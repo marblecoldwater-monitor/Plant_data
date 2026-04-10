@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<title>Treatment Map Final</title>
+<title>GeoJSON Debug Final</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -20,7 +20,8 @@
     background: white;
     padding: 10px;
     font-family: Arial;
-    font-size: 14px;
+    font-size: 13px;
+    max-width: 320px;
   }
 </style>
 </head>
@@ -44,35 +45,35 @@ fetch('./23-25-Treatments.geojson')
   .then(r => r.json())
   .then(data => {
 
+    console.log("RAW GEOJSON:", data);
+
     const layer = L.geoJSON(data, {
-      style: function () {
-        return {
-          color: "red",
-          weight: 3,
-          fillColor: "red",
-          fillOpacity: 0.6
-        };
-      },
-      onEachFeature: function (feature, layer) {
-        layer.bindPopup(JSON.stringify(feature.properties));
+      style: {
+        color: "red",
+        weight: 3,
+        fillColor: "red",
+        fillOpacity: 0.5
       }
     }).addTo(map);
 
     const bounds = layer.getBounds();
 
-    console.log("Bounds:", bounds);
+    console.log("BOUNDS:", bounds);
+
+    status.innerHTML =
+      "Bounds: " +
+      JSON.stringify(bounds);
 
     if (bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [20, 20] });
+      map.fitBounds(bounds, { padding: [30, 30] });
     } else {
-      map.setView([41.6, -87.7], 12);
+      status.innerHTML = "Invalid bounds ❌";
     }
 
-    status.innerHTML = "Loaded ✔";
   })
   .catch(err => {
     console.error(err);
-    status.innerHTML = "Error loading data";
+    status.innerHTML = "FAILED TO LOAD GEOJSON ❌";
   });
 
 </script>
