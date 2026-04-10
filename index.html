@@ -1,34 +1,77 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8" />
-<title>Plant Map</title>
+  <meta charset="utf-8" />
+  <title>Treatment Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<style>
-  html, body { height: 100%; margin: 0; }
-  #map { height: 100vh; }
-</style>
+  <style>
+    body { margin:0; }
+    #map { height: 100vh; }
+    .legend {
+      background: white;
+      padding: 10px;
+      line-height: 1.5em;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
 
 <div id="map"></div>
 
 <script>
-var map = L.map('map').setView([42.2, -85.3], 10);
+  var map = L.map('map').setView([41.67, -87.70], 14);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap'
-}).addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19
+  }).addTo(map);
 
-fetch('https://raw.githubusercontent.com/marblecoldwater-monitor/Plant_data/main/23-25-Treatments.geojson')
-  .then(r => r.json())
-  .then(data => {
-    const layer = L.geoJSON(data).addTo(map);
-    map.fitBounds(layer.getBounds());
-  });
+  function getColor(type) {
+    return type === 'Herbicide' ? '#e41a1c' :
+           type === 'Mechanical' ? '#377eb8' :
+           type === 'Biological' ? '#4daf4a' :
+           '#984ea3';
+  }
+
+  fetch('https://raw.githubusercontent.com/marblecoldwater-monitor/Plant_data/main/23-25-Treatments.geojson')
+    .then(res => res.json())
+    .then(data => {
+      L.geoJSON(data, {
+        style: function(feature) {
+          return {
+            color: getColor(feature.properties.Treatment),
+            weight: 2,
+            fillOpacity: 0.5
+          };
+        },
+        onEachFeature: function(feature, layer) {
+          let p = feature.properties;
+          layer.bindPopup(
+            "<b>Treatment:</b> " + p.Treatment + "<br>" +
+            "<b>Date:</b> " + p.Date + "<br>" +
+            "<b>Notes:</b> " + p.Notes
+          );
+        }
+      }).addTo(map);
+    });
+
+  var legend = L.control({position: 'bottomright'});
+  legend.onAdd = function () {
+    var div = L.DomUtil.create('div', 'legend');
+    div.innerHTML += "<b>Treatment Types</b><br>";
+    div.innerHTML += "<i style='background:#e41a1c;width:12px;height:12px;display:inline-block'></i> Herbicide<br>";
+    div.innerHTML += "<i style='background:#377eb8;width:12px;height:12px;display:inline-block'></i> Mechanical<br>";
+    div.innerHTML += "<i style='background:#4daf4a;width:12px;height:12px;display:inline-block'></i> Biological<br>";
+    return div;
+  };
+  legend.addTo(map);
 </script>
 
 </body>
